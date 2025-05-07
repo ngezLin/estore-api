@@ -14,4 +14,6 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB) {
 	//public
 	r.POST("/admin/register", authController.AdminRegister)
 	r.POST("/customer/register", authController.CustomerRegister)
+	r.POST("/admin/login", authController.AdminLogin)
+	r.POST("/customer/login", authController.CustomerLogin)
 }

@@ -52,6 +52,39 @@ func (ac *AuthController) AdminRegister(c *gin.Context) {
 	})
 }
 
+func (ac *AuthController) AdminLogin(c *gin.Context) {
+	var loginReq models.LoginRequestAdmin
+
+	//buat check valiasi masukan dari admin
+	if err := c.ShouldBindJSON(&loginReq); err != nil {
+		c.JSON(400, gin.H{"Error": err.Error()})
+		return
+	}
+
+	//buat check email admin
+	var admin models.Admin
+	if err := ac.DB.Where("email = ?", loginReq.Email).First(&admin).Error; err != nil {
+		c.JSON(401, gin.H{"Error": "Invalid Email"})
+		return
+	}
+
+	if err := admin.CheckPasswordAdmin(loginReq.Password); err != nil {
+		c.JSON(401, gin.H{"Error": "Invalid Password"})
+		return
+	}
+
+	token, err := utils.GenerateTokenAdmin(admin.ID)
+	if err != nil {
+		c.JSON(500, gin.H{"Eror": "Error Generating Token"})
+		return
+	}
+	//keluarkan output
+	c.JSON(200, gin.H{
+		"message": "Login Successfully!",
+		"token":   token,
+	})
+}
+
 func (ac *AuthController) CustomerRegister(c *gin.Context) {
 	var customer models.Customer
 
@@ -84,6 +117,39 @@ func (ac *AuthController) CustomerRegister(c *gin.Context) {
 	//output
 	c.JSON(201, gin.H{
 		"message": "Customer created successfully",
+		"token":   token,
+	})
+}
+
+func (ac *AuthController) CustomerLogin(c *gin.Context) {
+	var loginReq models.LoginRequestCustomer
+
+	//buat check valiasi masukan dari customer
+	if err := c.ShouldBindJSON(&loginReq); err != nil {
+		c.JSON(400, gin.H{"Error": err.Error()})
+		return
+	}
+
+	//buat check email customer
+	var customer models.Customer
+	if err := ac.DB.Where("email = ?", loginReq.Email).First(&customer).Error; err != nil {
+		c.JSON(401, gin.H{"Error": "Invalid Email"})
+		return
+	}
+
+	if err := customer.CheckPasswordCustomer(loginReq.Password); err != nil {
+		c.JSON(401, gin.H{"Error": "Invalid Password"})
+		return
+	}
+
+	token, err := utils.GenerateTokenCustomer(customer.ID)
+	if err != nil {
+		c.JSON(500, gin.H{"Eror": "Error Generating Token"})
+		return
+	}
+	//keluarkan output
+	c.JSON(200, gin.H{
+		"message": "Login Successfully!",
 		"token":   token,
 	})
 }

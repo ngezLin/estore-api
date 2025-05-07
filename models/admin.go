@@ -23,3 +23,14 @@ func (u *Admin) HashPassword(password string) error {
 
 	return nil
 }
+
+// DTO
+type LoginRequestAdmin struct {
+	Email    string `json:"email" binding:"required"`
+	Password string `json:"password" binding:"required"`
+}
+
+// check password
+func (u *Admin) CheckPasswordAdmin(password string) error {
+	return bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(password))
+}

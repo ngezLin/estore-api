@@ -23,3 +23,14 @@ func (u *Customer) HashPassword(password string) error {
 
 	return nil
 }
+
+// DTO
+type LoginRequestCustomer struct {
+	Email    string `json:"email" binding:"required"`
+	Password string `json:"password" binding:"required"`
+}
+
+// check password
+func (u *Customer) CheckPasswordCustomer(password string) error {
+	return bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(password))
+}
