@@ -23,6 +23,7 @@ func main() {
 	db.AutoMigrate(
 		&models.Admin{},
 		&models.Customer{},
+		&models.Product{},
 	)
 
 	routes.SetupRoutes(r, db)
