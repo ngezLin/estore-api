@@ -83,3 +83,49 @@ func (cc *CartController) GetCartItems(c *gin.Context) {
 
 	c.JSON(200, gin.H{"data": cartItems})
 }
+
+func (cc *CartController) ClearCart(c *gin.Context) {
+	customerID, exists := c.Get("customerId")
+	if !exists {
+		c.JSON(401, gin.H{"error": "Unauthorized"})
+		return
+	}
+
+	if err := cc.DB.Where("customer_id = ?", customerID).Delete(&models.CartItem{}).Error; err != nil {
+		c.JSON(500, gin.H{"error": "Failed to clear cart"})
+		return
+	}
+
+	c.JSON(200, gin.H{"message": "Cart cleared successfully"})
+}
+
+func (cc *CartController) UpdateCartItemQuantity(c *gin.Context) {
+	productID := c.Param("product_id")
+	var input struct {
+		Quantity int `json:"quantity"`
+	}
+
+	if err := c.ShouldBindJSON(&input); err != nil || input.Quantity < 1 {
+		c.JSON(400, gin.H{"error": "Invalid quantity"})
+		return
+	}
+
+	customerID, exists := c.Get("customerId")
+	if !exists {
+		c.JSON(401, gin.H{"error": "Unauthorized"})
+		return
+	}
+
+	var cartItem models.CartItem
+	if err := cc.DB.Where("customer_id = ? AND product_id = ?", customerID, productID).First(&cartItem).Error; err != nil {
+		c.JSON(404, gin.H{"error": "Cart item not found"})
+		return
+	}
+
+	cartItem.Quantity = input.Quantity
+	cc.DB.Save(&cartItem)
+
+	cc.DB.Preload("Product").Preload("Customer").First(&cartItem, cartItem.ID)
+
+	c.JSON(200, gin.H{"message": "Cart item updated", "data": cartItem})
+}

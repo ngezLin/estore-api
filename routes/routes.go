@@ -34,5 +34,7 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB) {
 		authCustomer.GET("/products/:id", productController.GetProductDetails)
 		authCustomer.POST("/cart", cartController.AddToCart)
 		authCustomer.GET("/cart", cartController.GetCartItems)
+		authCustomer.DELETE("/cart", cartController.ClearCart)
+		authCustomer.PUT("/cart/:product_id", cartController.UpdateCartItemQuantity)
 	}
 }
