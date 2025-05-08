@@ -11,6 +11,7 @@ import (
 func SetupRoutes(r *gin.Engine, db *gorm.DB) {
 	authController := controllers.NewAuthController(db)
 	productController := controllers.NewProductController(db)
+	cartController := controllers.NewCartController(db)
 
 	//public
 	r.POST("/admin/register", authController.AdminRegister)
@@ -31,5 +32,7 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB) {
 	{
 		authCustomer.GET("/products", productController.GetAvailableProducts)
 		authCustomer.GET("/products/:id", productController.GetProductDetails)
+		authCustomer.POST("/cart", cartController.AddToCart)
+		authCustomer.GET("/cart", cartController.GetCartItems)
 	}
 }
