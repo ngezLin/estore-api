@@ -19,6 +19,7 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB) {
 	r.POST("/admin/login", authController.AdminLogin)
 	r.POST("/customer/login", authController.CustomerLogin)
 
+	//admin
 	authAdmin := r.Group("/admin", middlewares.AuthMiddlewareAdmin())
 	{
 		authAdmin.POST("/products", productController.CreateProduct)
@@ -28,6 +29,8 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB) {
 
 	}
 
+
+	//customer
 	authCustomer := r.Group("/customer", middlewares.AuthMiddlewareCustomer())
 	{
 		authCustomer.GET("/products", productController.GetAvailableProducts)
@@ -36,5 +39,7 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB) {
 		authCustomer.GET("/cart", cartController.GetCartItems)
 		authCustomer.DELETE("/cart", cartController.ClearCart)
 		authCustomer.PUT("/cart/:product_id", cartController.UpdateCartItemQuantity)
+		authCustomer.DELETE("/cart/:product_id", cartController.RemoveCartItem)
+		authCustomer.POST("/checkout", cartController.Checkout)
 	}
 }

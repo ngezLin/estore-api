@@ -1,0 +1,11 @@
+https://api122-5422.postman.co/workspace/My-Workspace~71e39085-5944-4a67-8d8b-7fb9539774b9/collection/40938914-4881f142-7f55-4db8-b5a2-571d8028dd8b?action=share&creator=40938914&active-environment=40938914-bf6133c8-e70e-4847-9d9e-fbbd83e61da4
+
+go run main.go
+
+DB_HOST=
+DB_PORT=
+DB_USER=
+DB_PASSWORD=
+DB_NAME=
+JWT_SECRET=
+JWT_EXPIRATION=1h

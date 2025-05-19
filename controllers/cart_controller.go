@@ -43,13 +43,11 @@ func (cc *CartController) AddToCart(c *gin.Context) {
 		existingCartItem.Quantity += input.Quantity
 		cc.DB.Save(&existingCartItem)
 
-		// Preload associations before returning
 		cc.DB.Preload("Product").Preload("Customer").First(&existingCartItem, existingCartItem.ID)
 		c.JSON(200, gin.H{"message": "Cart updated", "data": existingCartItem})
 		return
 	}
 
-	// New cart item
 	cartItem := models.CartItem{
 		CustomerId: customerID.(uint),
 		ProductId:  input.ProductId,
@@ -128,4 +126,65 @@ func (cc *CartController) UpdateCartItemQuantity(c *gin.Context) {
 	cc.DB.Preload("Product").Preload("Customer").First(&cartItem, cartItem.ID)
 
 	c.JSON(200, gin.H{"message": "Cart item updated", "data": cartItem})
+}
+
+func (cc *CartController) RemoveCartItem(c *gin.Context) {
+	productID := c.Param("product_id")
+	customerID, exists := c.Get("customerId")
+	if !exists {
+		c.JSON(401, gin.H{"error": "Unauthorized"})
+		return
+	}
+
+	if err := cc.DB.Where("customer_id = ? AND product_id = ?", customerID, productID).Delete(&models.CartItem{}).Error; err != nil {
+		c.JSON(500, gin.H{"error": "Failed to remove cart item"})
+		return
+	}
+
+	c.JSON(200, gin.H{"message": "Cart item removed"})
+}
+
+func (cc *CartController) Checkout(c *gin.Context) {
+	customerID, exists := c.Get("customerId")
+	if !exists {
+		c.JSON(401, gin.H{"error": "Unauthorized"})
+		return
+	}
+
+	var cartItems []models.CartItem
+	cc.DB.Preload("Product").Where("customer_id = ?", customerID).Find(&cartItems)
+
+	if len(cartItems) == 0 {
+		c.JSON(400, gin.H{"error": "Cart is empty"})
+		return
+	}
+
+	var totalPrice float64
+	var transactionItems []models.TransactionItem
+
+	for _, item := range cartItems {
+		totalPrice += float64(item.Quantity) * item.Product.Price
+		transactionItems = append(transactionItems, models.TransactionItem{
+			ProductID: item.Product.ID,
+			Quantity:  item.Quantity,
+			Price:     item.Product.Price,
+		})
+
+		cc.DB.Model(&item.Product).Update("stock", item.Product.Stock-item.Quantity)
+	}
+
+	transaction := models.Transaction{
+		CustomerID: customerID.(uint),
+		TotalPrice: totalPrice,
+		Items:      transactionItems,
+	}
+
+	cc.DB.Create(&transaction)
+	cc.DB.Where("customer_id = ?", customerID).Delete(&models.CartItem{})
+	cc.DB.Preload("Items.Product").Preload("Customer").First(&transaction, transaction.ID)
+
+	c.JSON(200, gin.H{
+		"message": "Checkout successful",
+		"data":    transaction,
+	})
 }

@@ -25,6 +25,8 @@ func main() {
 		&models.Customer{},
 		&models.Product{},
 		&models.CartItem{},
+		&models.Transaction{},
+		&models.TransactionItem{},
 	)
 
 	routes.SetupRoutes(r, db)
